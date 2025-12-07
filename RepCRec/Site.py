@@ -52,11 +52,9 @@ class Site:
                     Identifier of the site that owns this DataManager.
 
             Side Effects:
-                - Populates `variable_map` with Variable objects for all
-                  variables that should live on this site according to the
-                  replication rule:
-                    * all even-index variables are stored at every site;
-                    * odd-index variables x_i are stored only at site (1 + i % 10).
+                Populates `variable_map` with Variable objects for all
+                variables that should live on this site according to the
+                replication rule.
             """            
             self.site_id = site_id
             self.variable_map = dict()
@@ -75,8 +73,7 @@ class Site:
                 variable (Variable): Variable instance to store.
 
             Side Effects:
-                - Inserts or overwrites the entry in `variable_map` under
-                  the given name.
+                Inserts or overwrites the entry in `variable_map` under the given name.
             """
             self.variable_map[name] = variable
 
@@ -116,13 +113,9 @@ class Site:
             Apply a write to a variable in this site's local storage.
 
             Args:
-                transaction (Transaction):
-                    Transaction issuing the write. Only used for logging or
-                    higher-level bookkeeping; not used directly here.
-                variable_name (str):
-                    Name of the variable to write, e.g., "x8".
-                value (int):
-                    New value to store.
+                transaction (Transaction): Transaction issuing the write.
+                variable_name (str): Name of the variable to write, e.g., "x8".
+                value (int): New value to store.
 
             Returns:
                 bool:
@@ -131,8 +124,7 @@ class Site:
                     variable at all.
 
             Side Effects:
-                - Mutates the underlying Variable's value in `variable_map`
-                  if the variable exists.
+                Mutates the underlying Variable's value in `variable_map` if the variable exists.
             """
             if variable_name in self.variable_map:
                 self.variable_map[variable_name].set_value(value)
@@ -155,15 +147,12 @@ class Site:
         Construct a Site object with the given site index.
 
         Args:
-            index (int):
-                Identifier of the site (1..num_sites).
+            index (int): Identifier of the site (1..num_sites).
 
         Side Effects:
-            - Initializes the site's DataManager with the correct variables.
-            - Populates `recovered_variables` with:
-                * all even variables stored at this site, and
-                * the odd variable that belongs exclusively to this site
-                  according to the schema.
+            Initializes the site's DataManager with the correct variables.
+            Populates `recovered_variables` with: all even variables stored at this site,
+            and the odd variable that belongs exclusively to this site according to the schema.
         """
         self.id = index
 
@@ -184,12 +173,11 @@ class Site:
         Update the status of this site.
 
         Args:
-            status (SiteStatus):
-                New status to assign to this site (UP, DOWN, or RECOVERING).
+            status (SiteStatus): New status to assign to this site (UP, DOWN, or RECOVERING).
 
         Side Effects:
-            - Mutates `self.status`.
-            - Logs an error if the given status is invalid.
+            Mutates `self.status`.
+            Logs an error if the given status is invalid.
         """
 
         if status in SiteStatus:
@@ -203,8 +191,7 @@ class Site:
         Get the current status of this site.
 
         Returns:
-            SiteStatus:
-                The current status (UP, DOWN, or RECOVERING).
+            SiteStatus: The current status (UP, DOWN, or RECOVERING).
         """
         return self.status
 
@@ -213,8 +200,7 @@ class Site:
         Get the identifier of this site.
 
         Returns:
-            int:
-                Site identifier (1..num_sites).
+            int: Site identifier (1..num_sites).
         """
         return self.id
 
@@ -223,9 +209,8 @@ class Site:
         Get the last recorded failure time of this site.
 
         Returns:
-            int | None:
-                Logical time (if tracked) of the last failure, or None
-                if no failure time has been recorded.
+            int | None: Logical time (if tracked) of the last failure, or None
+                        if no failure time has been recorded.
         """
         return self.last_failure_time
 
@@ -233,12 +218,9 @@ class Site:
         """
         Record the logical time when this site last failed.
 
-        Args:
-            time (int):
-                Logical timestamp representing the failure time.
+        Args: time (int): Logical timestamp representing the failure time.
 
-        Side Effects:
-             Mutates `self.last_failure_time`.
+        Side Effects: Mutates `self.last_failure_time`.
         """
         self.last_failure_time = time
 
@@ -250,24 +232,18 @@ class Site:
         Snapshot Isolation and Available Copies semantics.
 
         Args:
-            transaction (Transaction):
-                Transaction committing the write. Provided for consistency
-                and possible logging; not directly used in this method.
-            variable (str):
-                Variable name to write, e.g., "x4".
-            value (int):
-                Value to store for the variable.
+            transaction (Transaction): Transaction committing the write. 
+            variable (str): Variable name to write.
+            value (int): Value to store for the variable.
 
         Returns:
-            bool:
-                True if the write was accepted and applied at this site;
+            bool: True if the write was accepted and applied at this site;
                 False if the site is DOWN and the write is ignored.
 
         Side Effects:
-            - May mutate the underlying variable's value in the DataManager.
-            - If the site is RECOVERING and the variable is an even index
-              (replicated variable), adds the variable name to
-              `recovered_variables` to mark it as readable again.
+            May mutate the underlying variable's value in the DataManager.
+            If the site is RECOVERING and the variable is an even index, adds the variable name to
+            `recovered_variables` to mark it as readable again.
         """
 
         if self.status == SiteStatus.DOWN:
@@ -283,12 +259,12 @@ class Site:
 
     def fail(self):
         """
-        Mark this site as failed / DOWN.
+        Mark this site as DOWN.
 
         Side Effects:
-            - Sets the site status to SiteStatus.DOWN.
-            - Clears `recovered_variables` (no variable is readable anymore).
-            - Logs that the site has failed.
+             Sets the site status to SiteStatus.DOWN.
+             Clears `recovered_variables`.
+             Logs that the site has failed.
         """
         self.set_status(SiteStatus.DOWN)
         self.recovered_variables = set()
@@ -299,9 +275,8 @@ class Site:
         Transition this site into the RECOVERING state after a failure.
 
         Side Effects:
-            - Populates `recovered_variables` with all odd variables that
-              live on this site.
-            - Sets the site status to SiteStatus.RECOVERING.
+            Populates `recovered_variables` with all odd variables that live on this site.
+            Sets the site status to SiteStatus.RECOVERING.
         """
         # This would make sense once we actually kill the server
 
@@ -316,8 +291,7 @@ class Site:
         """
         Log a human-readable snapshot of all variables on this site.
 
-        Side Effects:
-            - Writes the formatted state of this site to the logger.
+        Side Effects: Writes the formatted state of this site to the logger.
         """
         log.info("=== Site " + str(self.id) + " ===")
 
@@ -357,13 +331,7 @@ class Site:
         Return a list of all Variable objects stored at this site.
 
         Returns:
-            list[Variable]:
-                List containing every Variable instance held in this site's
-                DataManager.
-
-        Side Effects:
-            - None (the caller receives a new list, but the Variable objects
-              themselves are shared).
+            list[Variable]: List containing every Variable instance held in this site's DataManager.
         """
         variables = list()
 

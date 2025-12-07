@@ -13,16 +13,10 @@ class Main:
     Main is the entry point of the entire system.
 
     Args (CLI):
-        file_path (str):
-            Path to the input file that contains instructions in the
-            project's language. When used with `stdin=True`, this can
-            be any dummy value and is not read.
-        out_file (str, option -o):
-            If provided, all logging output is written to this file.
-            If omitted (None), logging goes to stdout.
-        stdin (bool, flag -i):
-            If True, instructions are read from standard input instead of
-            from `file_path`.
+        file_path: input file path
+        out_file: If provided, all logging output is written to this file;
+                                If omitted, logging goes to stdout.
+        stdin: If True, instructions are read from standard input instead of from `file_path`.
     """
 
     @plac.annotations(
@@ -40,16 +34,12 @@ class Main:
         and InstructionIO.
 
         Args:
-            file_path (str):
-                Path to the instruction file (ignored when stdin=True).
-            out_file (str | None):
-                If not None, path to a log file to write all logs into.
-            stdin (bool):
-                If True, instructions are read from stdin; otherwise from
-                the file at `file_path`.
+            file_path: Path to the instruction file.
+            out_file: If not None, path to a log file to write all logs into.
+            stdin (bool):If True, instructions are read from stdin; otherwise from the file at `file_path`.
         Side effects:
-            - Configures global logging.
-            - Instantiates SiteManager, TransactionManager, and InstructionIO.
+            Configures global logging.
+            Instantiates SiteManager, TransactionManager, and InstructionIO.
         """
         p = Path('.') / file_path
 
@@ -85,10 +75,9 @@ class Main:
         Run the instruction-processing loop.
 
         Side effects:
-            - Reads instructions either from file or stdin.
-            - For each instruction, calls TransactionManager.tick(...) or
-              SiteManager.tick(...).
-            - Drives the entire lifetime of the test workload.
+            Reads instructions either from file or stdin.
+            For each instruction, calls TransactionManager.tick(...) or SiteManager.tick(...).
+            Drives the entire lifetime of the test workload.
         """
         self.io.run()
 

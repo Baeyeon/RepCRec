@@ -11,7 +11,6 @@ class InstructionType(Enum):
         WRITE : A write request (W(...)).
     """
     READ      = 0
-    # READ_ONLY = 1
     WRITE     = 2
 
 
@@ -25,13 +24,11 @@ class InstructionIO:
         stdin (bool):
             If True, input is read from standard input instead of a file.
         line_generator (generator | None):
-            When stdin=False, this is a generator that yields non-empty lines
-            from the input file.
+            When stdin=False, this is a generator that yields non-empty lines from the input file.
         site_manager (SiteManager):
             Object that handles site-related instructions (dump, fail, recover).
         transaction_manager (TransactionManager):
-            Object that handles transaction-related instructions
-            (begin, R, W, end).
+            Object that handles transaction-related instructions.
     """
 
     # Operation strings
@@ -52,29 +49,16 @@ class InstructionIO:
         Represents a single parsed instruction such as "R(T1, x1)".
 
         Attributes:
-            instruction_type (str):
-                Operation string, e.g., "R", "W", "begin", "end", "fail".
-            params (List[str]):
-                List of parameters inside the parentheses, e.g. ["T1", "x1"].
-                Empty strings are preserved if they exist.
+            instruction_type: Operation string, e.g., "R", "W", "begin", "end", "fail".
+            params: List of parameters inside the parentheses.
         """
         def __init__(self, raw: str):
             """
             Purpose:
                 Construct an Instruction object from a raw instruction string.
 
-            Inputs:
-                raw (str):
-                    Raw instruction text, for example:
-                    "R(T1, x1)", "end(T2)", "begin(T3)", or "dump()".
-
-            Outputs:
-                None (constructor). The following attributes are initialized:
-                    - self.instruction_type
-                    - self.params
-
-            Side effects:
-                None external. Only sets attributes on this Instruction instance.
+            Args:
+                raw (str): Raw instruction text
             """            
             self.instruction_type = raw.split('(')[0].strip()
 
@@ -93,28 +77,15 @@ class InstructionIO:
                 Return the list of parameters for this instruction.
 
             Returns:
-                List[str]:
-                    The parameters parsed from the instruction, in order.
-                    May contain empty strings if the original instruction
-                    had no content inside the parentheses.
-
-            Side effects:
-                None. 
+                List:The parameters parsed from the instruction, in order.
             """            
             return self.params
 
         def get_instruction_type(self):
             """
-            Purpose:
-                Return the operation string of this instruction.
+            Purpose: Return the operation string of this instruction.
 
-            Returns:
-                str:
-                    The instruction type, such as "R", "W", "begin", "end",
-                    "dump", "fail", or "recover".
-
-            Side effects:
-                None. 
+            Returns: str: The instruction type.
             """            
             return self.instruction_type
 
@@ -123,8 +94,7 @@ class InstructionIO:
                   stdin=False):
         """
         Purpose:
-            Initialize an InstructionIO instance that knows where to read
-            instructions from and how to dispatch them.
+            Initialize an InstructionIO instance that knows where to read instructions from and how to dispatch them.
 
         Args:
             file_name (str):
@@ -137,12 +107,7 @@ class InstructionIO:
                 If True, instructions are read from standard input using
                 input(). If False, instructions are read from file_name.
 
-        Returns:
-            None (constructor). Internal attributes are set up.
-
-        Side effects:
-            - If stdin is False, opens the file and creates a generator that
-              will read lines from it when needed.
+        Side effects: If stdin is False, opens the file and creates a generator that will read lines from it when needed.
         """        
         
         self.file_name = file_name
@@ -159,14 +124,11 @@ class InstructionIO:
             Create a generator that yields non-empty lines from the input file.
 
         Returns:
-            generator(str):
-                A generator which, on each iteration, yields the next
-                non-empty line from the file (including the newline characters).
+            generator: A generator which, on each iteration, yields the next non-empty line from the file.
 
         Side effects:
-            - Opens the file specified by self.file_name in read mode.
-            - Relies on the file system; if the file does not exist,
-              an exception will be raised when this function is called.
+            Opens the file specified by self.file_name in read mode.
+            Relies on the file system; if the file does not exist, an exception will be raised when this function is called.
         """
         with open(self.file_name, 'r') as input_file:
             for line in input_file:
@@ -179,20 +141,11 @@ class InstructionIO:
             Parse a single raw line into zero or more Instruction objects.
 
         Args:
-            line (str):
-                A raw input line which may contain multiple instructions
-                separated by ';', and may also contain comments starting
-                with "//".
+            line: A raw input line which may contain multiple instructions separated by ';',
+              and may also contain comments starting with "//".
 
         Returns:
-            List[InstructionIO.Instruction]:
-                A list of Instruction objects created from this line,
-                in the order they appear. Comment-only sections and
-                empty segments are ignored.
-
-        Side effects:
-            - Constructs Instruction objects in memory.
-            - Does not interact with external systems.
+            List: A list of Instruction objects created from this line, in the order they appear. 
         """
         pieces = line.strip().split(";")
         instructions = []
@@ -211,15 +164,13 @@ class InstructionIO:
             Read the next line of input (from file or stdin) and parse it
 
         Returns:
-            List[InstructionIO.Instruction] | None:
-                - If a new line is successfully read, returns the list of
-                  Instruction objects parsed from that line.
-                - If there is no more input (end of file or EOF on stdin),
-                  returns None.
+            List|None: If a new line is successfully read, returns the list of
+                  Instruction objects parsed from that line; If there is no more 
+                  input (end of file or EOF on stdin), returns None.
 
         Side effects:
-            - Consumes one line from the file generator or from stdin.
-            - May raise or internally catch EOFError when reading from stdin.
+            Consumes one line from the file generator or from stdin.
+            May raise or internally catch EOFError when reading from stdin.
         """
         if not self.stdin:
             line = next(self.line_generator, None)
@@ -240,18 +191,10 @@ class InstructionIO:
             Continuously fetches instructions and dispatches them to
             the appropriate manager until input is exhausted.
 
-        Returns:
-            None. 
-
         Side effects:
-            - Repeatedly reads from the input source (file or stdin).
-            - For each parsed Instruction:
-                * If the operation type is in OP_SITE_MANAGER, calls
-                  self.site_manager.tick(inst).
-                * Otherwise, calls self.transaction_manager.tick(inst).
-            - By calling the managers' tick methods, this function drives
-              the rest of the system: transactions begin/end, reads/writes
-              occur, sites fail/recover, and dumps are performed.
+            Repeatedly reads from the input source (file or stdin).
+            For each parsed Instruction: If the operation type is in OP_SITE_MANAGER, calls self.site_manager.tick(inst).
+                Otherwise, calls self.transaction_manager.tick(inst).
         """
         instructions = self.get_next_instruction()
 

@@ -2,8 +2,7 @@ import copy
 
 class Variable:
     """
-    Variable class represents the data of our sites which
-    can be read or written by transactions
+    Variable class represents the data of our sites which can be read or written by transactions
 
     Args:
         index: index of variable
@@ -21,8 +20,7 @@ class Variable:
     @classmethod
     def get_sites(self, id):
         """
-        Class method which returns the sites on which the variable is present
-        given an id
+        Class method which returns the sites on which the variable is present given an id
 
         Args:
             id: id of the variable for which list of sites is requested

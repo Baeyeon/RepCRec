@@ -18,14 +18,8 @@ class Transaction:
     Represents a single transaction.
 
     Args:
-        id (int): Internal numeric id for this transaction.
-        name (str): External transaction name.
-
-    Side effects:
-        Methods of this class only modify the in-memory fields of
-        this Transaction instance. They do not directly modify any
-        site or variable; actual commits are performed by the
-        TransactionManager.
+        id: Internal numeric id for this transaction.
+        name: External transaction name.
     """
 
     def __init__(self, id, name):
@@ -33,19 +27,19 @@ class Transaction:
         Initialize a new Transaction object.
 
         Args:
-            id (int): Internal numeric identifier for this transaction.
-            name (str): External name of the transaction (e.g., "T1").
+            id: Internal numeric identifier for this transaction.
+            name: External name of the transaction.
 
         Initializes:
-            status (TransactionStatus): Starts as RUNNING.
-            snapshot (dict): Snapshot of committed variable values at begin().
-            uncommitted_variables (dict): Write-set buffer (var → new value).
-            read_set (set): Variables read by this transaction.
-            read_variables (dict): Detailed read history (var → list of values).
-            write_set (set): Variables written by this transaction.
-            start_ts (int | None): Timestamp when the transaction began.
-            commit_ts (int | None): Timestamp when the transaction committed.
-            write_sites (set): Sites that this transaction has written to.
+            status: Starts as RUNNING.
+            snapshot: Snapshot of committed variable values at begin().
+            uncommitted_variables : Write-set buffer.
+            read_set: Variables read by this transaction.
+            read_variables: Detailed read history.
+            write_set: Variables written by this transaction.
+            start_ts: Timestamp when the transaction began.
+            commit_ts: Timestamp when the transaction committed.
+            write_sites : Sites that this transaction has written to.
         """
         self.status = TransactionStatus.RUNNING
         self.id = id
@@ -86,7 +80,7 @@ class Transaction:
 
     def get_sites_accessed(self):
         """
-        Gets sites accessed by the transaction
+        Get sites accessed by the transaction
 
         Returns:
             List of sites accessed
@@ -98,8 +92,7 @@ class Transaction:
         Set status of the transaction
 
         Args:
-            status: TransactionStatus type to be set to this transaction's
-                    status
+            status: TransactionStatus type to be set to this transaction's status
         Raises:
             ValueError if unknown transactionstatus type is passed
         """

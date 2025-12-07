@@ -15,16 +15,15 @@ class TransactionManager:
     Coordinates all transactions and enforces SSI.
 
     Attributes:
-        number_of_variables (int): Total number of logical variables.
-        number_of_sites (int): Number of replication sites.
-        site_manager (SiteManager): Used to read/write values on sites.
-        transaction_map (dict[str, Transaction]): Active transactions by name.
-        current_time (int): Logical time used for timestamps.
-        last_commit_ts (dict[str, int]): Last commit time per variable.
-        last_writer (dict[str, str]): Last committing transaction per variable.
-        version_history (dict[str, list[(int, str)]]): (commit_ts, txn_name)
-            history per variable, for version reasoning.
-        dep_graph (dict[str, set[str]]): SSI dependency graph edges.
+        number_of_variables: Total number of logical variables.
+        number_of_sites: Number of replication sites.
+        site_manager: Used to read/write values on sites.
+        transaction_map: Active transactions by name.
+        current_time: Logical time used for timestamps.
+        last_commit_ts: Last commit time per variable.
+        last_writer: Last committing transaction per variable.
+        version_history: (commit_ts, txn_name) history per variable, for version reasoning.
+        dep_graph: SSI dependency graph edges.
     """
 
     def __init__(self, num_vars, num_sites, site_manager):
@@ -32,13 +31,12 @@ class TransactionManager:
         Initialize a TransactionManager instance.
 
         Args:
-            num_vars (int): Total number of logical variables.
-            num_sites (int): Number of replication sites.
-            site_manager (SiteManager): Manager used to access sites.
+            num_vars: Total number of logical variables.
+            num_sites: Number of replication sites.
+            site_manager: Manager used to access sites.
 
         Side effects:
-            - Sets up empty metadata structures (transaction_map, timestamps,
-              SSI graph) for later use.
+            - Sets up empty metadata structures (transaction_map, timestamps, SSI graph) for later use.
         """        
         self.number_of_variables = num_vars
         self.number_of_sites = num_sites
@@ -57,11 +55,11 @@ class TransactionManager:
         Dispatch a single parsed instruction to the correct handler.
 
         Args:
-            instruction (InstructionIO.Instruction): Parsed instruction from IO.
+            instruction: Parsed instruction from IO.
 
         Side effects:
-            - Advances logical time.
-            - May create, read, write, or commit/abort transactions.
+            Advances logical time.
+            May create, read, write, or commit/abort transactions.
         """
         self.current_time += 1
         self.clear_aborted()
@@ -88,12 +86,12 @@ class TransactionManager:
         Start a new transaction and take its initial snapshot.
 
         Args:
-            params (list[str]): [transaction_name].
+            params: [transaction_name].
 
         Side effects:
-            - Creates a Transaction object.
-            - Sets start_ts and snapshot for that transaction.
-            - Stores it in transaction_map.
+            Creates a Transaction object.
+            Sets start_ts and snapshot for that transaction.
+            Stores it in transaction_map.
         """        
         name = params[0]
         current_index = len(self.transaction_map)
@@ -112,12 +110,12 @@ class TransactionManager:
         Handle a write request under Snapshot Isolation.
 
         Args:
-            params (list[str]): [txn_name, variable_name, value_str].
+            params: [txn_name, variable_name, value_str].
 
         Side effects:
-            - Buffers the write in txn.uncommitted_variables.
-            - Records the variable in txn.write_set.
-            - Records which sites were up when this variable was written, for Available-Copies handling on commit.
+            Buffers the write in txn.uncommitted_variables.
+            Records the variable in txn.write_set.
+            Records which sites were up when this variable was written, for Available-Copies handling on commit.
         """
         txn_name = params[0]
         var = params[1]
@@ -155,11 +153,9 @@ class TransactionManager:
         """
         Abort all transactions that have written to a failed site.
 
-        Args:
-            site_id (int): Id of the site that just failed.
+        Args: site_id: Id of the site that just failed.
 
-        Side effects:
-            - Marks any such transaction as ABORTED.
+        Side effects: Marks any such transaction as ABORTED.
         """
         for txn in self.transaction_map.values():
             status = txn.get_status()
@@ -174,13 +170,11 @@ class TransactionManager:
         """
         Handle a read request under Snapshot Isolation.
 
-        Args:
-            params (list[str]): [txn_name, variable_name].
+        Args: params: [txn_name, variable_name].
 
         Side effects:
-            - May mark the transaction as ABORTED if the variable
-              is not in its snapshot.
-            - Records the read in txn.read_set / txn.read_variables.
+            May mark the transaction as ABORTED if the variable is not in its snapshot.
+            Records the read in txn.read_set / txn.read_variables.
         """
         txn_name = params[0]
         var = params[1]
@@ -221,12 +215,11 @@ class TransactionManager:
         Find the last writer of a variable before a given time.
 
         Args:
-            var (str): Variable name (e.g., "x3").
-            snapshot_ts (int): Snapshot time to search up to.
+            var: Variable name.
+            snapshot_ts: Snapshot time to search up to.
 
         Returns:
-            str | None: Name of the writing transaction, or None if
-            no committed version exists before snapshot_ts.
+            str|None: Name of the writing transaction, or None if no committed version exists before snapshot_ts.
         """
         history = self.version_history.get(var, [])
         writer = None
@@ -242,11 +235,10 @@ class TransactionManager:
         Add a directed edge to the SSI dependency graph.
 
         Args:
-            frm (str): Source transaction name.
-            to (str): Destination transaction name.
+            frm: Source transaction name.
+            to: Destination transaction name.
 
-        Side effects:
-            - Updates dep_graph[frm] to include 'to'.
+        Side effects: Updates dep_graph[frm] to include 'to'.
         """
         if frm == to:
             return
@@ -256,11 +248,9 @@ class TransactionManager:
         """
         Check if there is a cycle in the SSI graph reachable from a node.
 
-        Args:
-            start_name (str): Name of the transaction to start DFS from.
+        Args: start_name: Name of the transaction to start DFS from.
 
-        Returns:
-            bool: True if a cycle is found, False otherwise.
+        Returns: bool: True if a cycle is found, False otherwise.
         """
         visited = set()
         stack = set()
@@ -283,11 +273,9 @@ class TransactionManager:
         """
         Remove a transaction from the SSI dependency graph.
 
-        Args:
-            name (str): Transaction name to remove.
+        Args: name: Transaction name to remove.
 
-        Side effects:
-            - Deletes 'name' node and removes it from all adjacency sets.
+        Side effects: Deletes 'name' node and removes it from all adjacency sets.
         """
         if name in self.dep_graph:
             self.dep_graph.pop(name)
@@ -300,12 +288,9 @@ class TransactionManager:
         Add SSI graph edges based on this transaction's writes.
 
         Args:
-            txn (Transaction): Transaction that is about to commit.
+            txn: Transaction that is about to commit.
 
-        Side effects:
-            - Updates dep_graph with: rw edges: reader -> writer for read-old / write-new
-                                    ww edges: earlier-writer -> later-writer, unless the
-                                    same pair already has an rw edge on that variable.
+        Side effects: Updates dep_graph with: rw edges,ww edges, unless the same pair already has an rw edge on that variable.
         """
         name = txn.name
 
@@ -338,9 +323,7 @@ class TransactionManager:
         """
         Clean up transactions that are already marked ABORTED.
 
-        Side effects:
-            - Calls abort(name) for each aborted transaction, which
-              removes it from the SSI graph.
+        Side effects:  Calls abort(name) for each aborted transaction, which removes it from the SSI graph.
         """
         to_pop = list()
 
@@ -356,11 +339,11 @@ class TransactionManager:
         Mark a transaction as aborted and remove it from SSI graph.
 
         Args:
-            name (str): Name of the transaction to abort.
+            name: Name of the transaction to abort.
 
-        Side effects:
-            - Sets txn.status to ABORTED if the transaction exists.
-            - Removes it from dep_graph.
+        Side effects: 
+            Sets txn.status to ABORTED if the transaction exists.
+            Removes it from dep_graph.
         """
         if name not in self.transaction_map:
             return
@@ -376,13 +359,11 @@ class TransactionManager:
         Attempt to commit a transaction under SI + SSI.
 
         Args:
-            name (str): Name of the transaction to commit.
+            name: Name of the transaction to commit.
 
         Side effects:
-            - May mark the transaction as ABORTED (SI write-write conflict
-              or SSI cycle).
-            - On success, writes its buffered values to the appropriate
-              sites and updates SI/SSI metadata.
+            May mark the transaction as ABORTED.
+            On success, writes its buffered values to the appropriate sites and updates SI/SSI metadata.
         """
         if name not in self.transaction_map:
             return
@@ -450,12 +431,12 @@ class TransactionManager:
         Handle an end(Ti) instruction: try to commit the transaction.
 
         Args:
-            params (list[str]): [transaction_name].
+            params: [transaction_name].
 
         Side effects:
-            - Calls commit_transaction(name).
-            - Logs whether the transaction committed or aborted.
-            - Removes aborted transactions from the SSI graph.
+            Calls commit_transaction(name).
+            Logs whether the transaction committed or aborted.
+            Removes aborted transactions from the SSI graph.
         """
         name = params[0]
 

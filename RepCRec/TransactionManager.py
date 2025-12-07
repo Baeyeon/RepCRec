@@ -20,7 +20,6 @@ class TransactionManager:
         site_manager (SiteManager): Used to read/write values on sites.
         transaction_map (dict[str, Transaction]): Active transactions by name.
         current_time (int): Logical time used for timestamps.
-
         last_commit_ts (dict[str, int]): Last commit time per variable.
         last_writer (dict[str, str]): Last committing transaction per variable.
         version_history (dict[str, list[(int, str)]]): (commit_ts, txn_name)

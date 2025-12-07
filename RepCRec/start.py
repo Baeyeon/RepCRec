@@ -84,8 +84,6 @@ class Main:
         """
         Run the instruction-processing loop.
 
-        Returns:
-            None.
         Side effects:
             - Reads instructions either from file or stdin.
             - For each instruction, calls TransactionManager.tick(...) or

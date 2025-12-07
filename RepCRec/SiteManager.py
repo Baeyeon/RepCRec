@@ -109,8 +109,7 @@ class SiteManager:
         Returns:
             Site: The Site instance corresponding to the given index.
         Side effects:
-            - Calls _check_index_sanity and may raise ValueError if
-              index is out of range.
+             Calls _check_index_sanity and may raise ValueError if index is out of range.
         """
         self._check_index_sanity(index)
         return self.sites[index]
@@ -125,8 +124,6 @@ class SiteManager:
                 treated as a single site index and returned as a one-element list [sites].
         Returns:
             list[int]: A list of site indices to operate on.
-        Side effects:
-            None.
         """
 
         if sites == 'all':
@@ -143,8 +140,6 @@ class SiteManager:
             dict[str, int]: A mapping var_name -> value for all logical variables
                 that currently have at least one readable, committed replica across
                 the sites. Variables with no readable replica are omitted.
-        Side effects:
-            None.
         """
         snapshot = {}
 

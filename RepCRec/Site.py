@@ -90,9 +90,6 @@ class Site:
             Returns:
                 Variable | None:
                     The Variable instance if present; otherwise None.
-
-            Side Effects:
-                - None.
             """            
             if name in self.variable_map:
                 return self.variable_map[name]
@@ -110,9 +107,6 @@ class Site:
                 bool:
                     True if the variable is stored in `variable_map`,
                     False otherwise.
-
-            Side Effects:
-                - None.
             """            
             return name in self.variable_map
 
@@ -153,9 +147,6 @@ class Site:
             Returns:
                 dict[str, Variable]:
                     Dictionary mapping variable names to Variable instances.
-
-            Side Effects:
-                - None
             """            
             return self.variable_map
 
@@ -196,9 +187,6 @@ class Site:
             status (SiteStatus):
                 New status to assign to this site (UP, DOWN, or RECOVERING).
 
-        Returns:
-            None.
-
         Side Effects:
             - Mutates `self.status`.
             - Logs an error if the given status is invalid.
@@ -217,9 +205,6 @@ class Site:
         Returns:
             SiteStatus:
                 The current status (UP, DOWN, or RECOVERING).
-
-        Side Effects:
-            - None.
         """
         return self.status
 
@@ -230,9 +215,6 @@ class Site:
         Returns:
             int:
                 Site identifier (1..num_sites).
-
-        Side Effects:
-            - None.
         """
         return self.id
 
@@ -244,9 +226,6 @@ class Site:
             int | None:
                 Logical time (if tracked) of the last failure, or None
                 if no failure time has been recorded.
-
-        Side Effects:
-            - None.
         """
         return self.last_failure_time
 
@@ -258,11 +237,8 @@ class Site:
             time (int):
                 Logical timestamp representing the failure time.
 
-        Returns:
-            None.
-
         Side Effects:
-            - Mutates `self.last_failure_time`.
+             Mutates `self.last_failure_time`.
         """
         self.last_failure_time = time
 
@@ -309,9 +285,6 @@ class Site:
         """
         Mark this site as failed / DOWN.
 
-        Returns:
-            None.
-
         Side Effects:
             - Sets the site status to SiteStatus.DOWN.
             - Clears `recovered_variables` (no variable is readable anymore).
@@ -324,9 +297,6 @@ class Site:
     def recover(self):
         """
         Transition this site into the RECOVERING state after a failure.
-
-        Returns:
-            None.
 
         Side Effects:
             - Populates `recovered_variables` with all odd variables that
@@ -345,9 +315,6 @@ class Site:
     def dump_site(self):
         """
         Log a human-readable snapshot of all variables on this site.
-
-        Returns:
-            None.
 
         Side Effects:
             - Writes the formatted state of this site to the logger.

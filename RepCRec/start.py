@@ -17,10 +17,6 @@ class Main:
             Path to the input file that contains instructions in the
             project's language. When used with `stdin=True`, this can
             be any dummy value and is not read.
-        num_sites (int, option -n):
-            Number of database sites to create.
-        num_variables (int, option -v):
-            Number of logical variables (x1..xN) in the system.
         out_file (str, option -o):
             If provided, all logging output is written to this file.
             If omitted (None), logging goes to stdout.
@@ -30,19 +26,15 @@ class Main:
     """
 
     @plac.annotations(
-        file_path=("File name, pass anything in case of stdin",
-                   "positional", None, str),
-        num_sites=("Number of Sites", "option", "n", int),
-        num_variables=("Number of variables", "option", "v", int),
-        out_file=("Output file, if not passed we log to stdout",
-                  "option", "o", str),
-        stdin=("Take input from stdin instead of file if passed",
-               "flag", "i"))
+        file_path=("Path to the input file", "positional", None, str),
+        out_file=("Optional log file; if omitted, logs go to stdout",
+                "option", "o", str),
+        stdin=("Read instructions from stdin instead of a file",
+            "flag", "i"),
+    )
     def __init__(self, file_path,
-                 num_sites=config['NUM_SITES'],
-                 num_variables=config['NUM_VARIABLES'],
-                 out_file=None,
-                 stdin=False):
+                out_file=None,
+                stdin=False):
         """
         Constructor. Sets up logging, creates SiteManager, TransactionManager,
         and InstructionIO.
@@ -50,17 +42,11 @@ class Main:
         Args:
             file_path (str):
                 Path to the instruction file (ignored when stdin=True).
-            num_sites (int):
-                Number of sites to create.
-            num_variables (int):
-                Number of logical variables in the system.
             out_file (str | None):
                 If not None, path to a log file to write all logs into.
             stdin (bool):
                 If True, instructions are read from stdin; otherwise from
                 the file at `file_path`.
-        Returns:
-            None.
         Side effects:
             - Configures global logging.
             - Instantiates SiteManager, TransactionManager, and InstructionIO.
@@ -78,9 +64,9 @@ class Main:
         )
 
         # Core components
-        self.site_manager = SiteManager(num_sites, num_variables)
+        self.site_manager = SiteManager(config["NUM_SITES"], config["NUM_VARIABLES"])
         self.transaction_manager = TransactionManager(
-            num_variables, num_sites, self.site_manager
+            config["NUM_VARIABLES"], config["NUM_SITES"], self.site_manager
         )
 
         # Allow SiteManager to notify TransactionManager on failures
